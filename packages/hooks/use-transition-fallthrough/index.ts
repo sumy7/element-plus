@@ -59,7 +59,7 @@ export const useTransitionFallthroughEmits = [
  */
 
 export const useTransitionFallthrough = () => {
-  const { emit } = getCurrentInstance()
+  const { emit } = getCurrentInstance()!
 
   return {
     onAfterAppear: () => {
