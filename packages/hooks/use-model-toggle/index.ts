@@ -23,6 +23,7 @@ export type ModelToggleParams = {
   shouldProceed?: () => boolean
   onShow?: () => void
   onHide?: () => void
+  modelKey?: string
 }
 
 export const useModelToggle = ({
@@ -31,16 +32,19 @@ export const useModelToggle = ({
   shouldProceed,
   onShow,
   onHide,
+  modelKey = 'modelValue',
 }: ModelToggleParams) => {
   const { appContext, props, proxy, emit } = getCurrentInstance()!
 
+  const updateEventKey = `update:${modelKey}`
+
   const hasUpdateHandler = computed(() =>
-    isFunction(props['onUpdate:modelValue'])
+    isFunction(props[`onUpdate:${modelKey}`])
   )
   // when it matches the default value we say this is absent
   // though this could be mistakenly passed from the user but we need to rule out that
   // condition
-  const isModelBindingAbsent = computed(() => props.modelValue === null)
+  const isModelBindingAbsent = computed(() => props[modelKey] === null)
 
   const doShow = () => {
     if (indicator.value === true) {
@@ -75,7 +79,7 @@ export const useModelToggle = ({
     const shouldEmit = hasUpdateHandler.value && !isServer
 
     if (shouldEmit) {
-      emit(UPDATE_MODEL_EVENT, true)
+      emit(updateEventKey, true)
     }
 
     if (isModelBindingAbsent.value || !shouldEmit) {
@@ -89,7 +93,7 @@ export const useModelToggle = ({
     const shouldEmit = hasUpdateHandler.value && !isServer
 
     if (shouldEmit) {
-      emit(UPDATE_MODEL_EVENT, false)
+      emit(updateEventKey, false)
     }
 
     if (isModelBindingAbsent.value || !shouldEmit) {
@@ -101,7 +105,7 @@ export const useModelToggle = ({
     if (!isBool(val)) return
     if (props.disabled && val) {
       if (hasUpdateHandler.value) {
-        emit(UPDATE_MODEL_EVENT, false)
+        emit(updateEventKey, false)
       }
     } else if (indicator.value !== val) {
       if (val) {
@@ -120,7 +124,7 @@ export const useModelToggle = ({
     }
   }
 
-  watch(() => props.modelValue, onChange as any)
+  watch(() => props[modelKey], onChange as any)
 
   if (
     shouldHideWhenRouteChanges &&
@@ -143,7 +147,7 @@ export const useModelToggle = ({
   }
 
   onMounted(() => {
-    onChange(props.modelValue as boolean)
+    onChange(props[modelKey] as boolean)
   })
 
   return {
